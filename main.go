@@ -149,8 +149,12 @@ func main() {
 	case 2:
 		scatter := charts.NewScatter()
 		scatter.SetGlobalOptions(chartOptions...)
-		add2DSeries(swift, swiftPcas, scatter)
-		add2DSeries(mp, mpPcas, scatter)
+		if err := add2DSeries(swift, swiftPcas, scatter); err != nil {
+			log.Fatal(err)
+		}
+		if err := add2DSeries(mp, mpPcas, scatter); err != nil {
+			log.Fatal(err)
+		}
 		r = scatter
 	case 3:
 		scatter3d := charts.NewScatter3D()

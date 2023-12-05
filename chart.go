@@ -51,14 +51,13 @@ func getColors(artist string, grad bool, count int) ([]string, error) {
 	}
 }
 
-func add2DSeries(artist string, data []Data, chart *charts.Scatter) {
+func add2DSeries(artist string, data []Data, chart *charts.Scatter) error {
 	for _, d := range data {
 		for _, p := range d.Vectors {
 			vals := make([]interface{}, len(p.Vector))
 			for i := range p.Vector {
 				vals[i] = p.Vector[i]
 			}
-			fmt.Println("album: ", d.Name, "song:", p.Name)
 			chart.AddSeries(artist, []opts.ScatterData{
 				{
 					Name:   fmt.Sprintf("%s (%s)", p.Name, d.Name),
@@ -68,6 +67,7 @@ func add2DSeries(artist string, data []Data, chart *charts.Scatter) {
 			})
 		}
 	}
+	return nil
 }
 
 func add3DSeries(artist string, data []Data, chart *charts.Scatter3D, grad bool) error {
