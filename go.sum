@@ -1,3 +1,5 @@
+github.com/danaugrs/go-tsne/tsne v0.0.0-20220306155740-2250969e057f h1:5M3/cWnsF9o5+7/PkKJXtZ0i5XZDnoxBzI8531mXJUM=
+github.com/danaugrs/go-tsne/tsne v0.0.0-20220306155740-2250969e057f/go.mod h1:vQ+nFRPFDrDVbRneDNbXPObFFq4ZilZBhYdfNiqSr7k=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/go-echarts/go-echarts/v2 v2.3.2 h1:imRxqF5sLtEPBsv5HGwz9KklNuwCo0fTITZ31mrgfzo=
 github.com/go-echarts/go-echarts/v2 v2.3.2/go.mod h1:56YlvzhW/a+du15f3S2qUGNDfKnFOeJSThBIrVFHDtI=

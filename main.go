@@ -6,7 +6,9 @@ import (
 	"io"
 	"log"
 	"os"
+	"strings"
 
+	"github.com/danaugrs/go-tsne/tsne"
 	"github.com/go-echarts/go-echarts/v2/charts"
 	"github.com/go-echarts/go-echarts/v2/opts"
 	"github.com/go-echarts/go-echarts/v2/render"
@@ -36,28 +38,55 @@ var (
 	dim       int
 	gradient  bool
 	out       string
+	proj      string
 )
 
 func init() {
 	flag.StringVar(&swiftPath, "swift-path", "", "taylor swift embeddings path")
 	flag.StringVar(&mpPath, "mp-path", "", "masterplar embeddings path")
-	flag.IntVar(&dim, "dim", 2, "chart dimension used for plotting and PCA projection (2 or 3)")
+	flag.IntVar(&dim, "dim", 2, "chart dimension used for plotting and data projection (2 or 3)")
 	flag.BoolVar(&gradient, "gradient", false, "use gradient when coloring charts")
 	flag.StringVar(&title, "title", "Taylor Swift vs Masterplan", "title for the embeddings chart")
 	flag.StringVar(&out, "out", "embeddings.html", "chart output path")
+	flag.StringVar(&proj, "proj", "pca", "projection (pca or tsne)")
 }
 
-func getPCA(path string, dim int) ([]Data, error) {
-	b, err := os.ReadFile(path)
-	if err != nil {
-		log.Fatal(err)
+func getTSNE(embs []Data, dim int) ([]Data, error) {
+	tsnes := make([]Data, 0, len(embs))
+
+	perplexity, learningRate := float64(300), float64(300)
+	if dim == 3 {
+		perplexity, learningRate = float64(500), float64(500)
 	}
 
-	var embs []Data
-	if err := json.Unmarshal(b, &embs); err != nil {
-		return nil, err
+	for _, e := range embs {
+		items := make([]Item, 0, len(e.Vectors))
+		// albumMx: each row is a song whose dimension is the length of its embedding
+		albumMx := mat.NewDense(len(e.Vectors), len(e.Vectors[0].Vector), nil)
+		for i, t := range e.Vectors {
+			albumMx.SetRow(i, t.Vector)
+		}
+
+		t := tsne.NewTSNE(dim, perplexity, learningRate, 300, true)
+		resMat := t.EmbedData(albumMx, nil)
+		d := mat.DenseCopyOf(resMat)
+
+		for i := range e.Vectors {
+			items = append(items, Item{
+				Name:   e.Vectors[i].Name,
+				Vector: d.RawRowView(i),
+			})
+		}
+		tsnes = append(tsnes, Data{
+			Name:    e.Name,
+			Vectors: items,
+		})
 	}
 
+	return tsnes, nil
+}
+
+func getPCA(embs []Data, dim int) ([]Data, error) {
 	pcas := make([]Data, 0, len(embs))
 
 	for _, e := range embs {
@@ -98,6 +127,24 @@ func getPCA(path string, dim int) ([]Data, error) {
 	return pcas, nil
 }
 
+func getSeriesData(path string, proj string, dim int) ([]Data, error) {
+	b, err := os.ReadFile(path)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var embs []Data
+	if err := json.Unmarshal(b, &embs); err != nil {
+		return nil, err
+	}
+
+	if strings.EqualFold(proj, "tsne") {
+		return getTSNE(embs, dim)
+	}
+
+	return getPCA(embs, dim)
+}
+
 func main() {
 	flag.Parse()
 
@@ -110,13 +157,13 @@ func main() {
 	}
 
 	// Taylor Swift data
-	swiftPcas, err := getPCA(swiftPath, dim)
+	swiftPcas, err := getSeriesData(swiftPath, proj, dim)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	// Masterplan data
-	mpPcas, err := getPCA(mpPath, dim)
+	mpPcas, err := getSeriesData(mpPath, proj, dim)
 	if err != nil {
 		log.Fatal(err)
 	}
