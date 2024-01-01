@@ -21,14 +21,14 @@ const (
 	mp    = "Masterplan"
 )
 
-type Item struct {
+type Vector struct {
 	Name   string    `json:"name"`
-	Vector []float64 `json:"vector"`
+	Values []float64 `json:"vector"`
 }
 
 type Data struct {
-	Name    string `json:"name"`
-	Vectors []Item `json:"embeddings"`
+	Name    string   `json:"name"`
+	Vectors []Vector `json:"embeddings"`
 }
 
 var (
@@ -54,27 +54,27 @@ func init() {
 func getTSNE(embs []Data, dim int) ([]Data, error) {
 	tsnes := make([]Data, 0, len(embs))
 
-	perplexity, learningRate := float64(300), float64(300)
+	perplexity, learningRate := float64(30), float64(200)
 	if dim == 3 {
-		perplexity, learningRate = float64(500), float64(500)
+		perplexity, learningRate = float64(30), float64(200)
 	}
 
 	for _, e := range embs {
-		items := make([]Item, 0, len(e.Vectors))
+		items := make([]Vector, 0, len(e.Vectors))
 		// albumMx: each row is a song whose dimension is the length of its embedding
-		albumMx := mat.NewDense(len(e.Vectors), len(e.Vectors[0].Vector), nil)
+		albumMx := mat.NewDense(len(e.Vectors), len(e.Vectors[0].Values), nil)
 		for i, t := range e.Vectors {
-			albumMx.SetRow(i, t.Vector)
+			albumMx.SetRow(i, t.Values)
 		}
 
-		t := tsne.NewTSNE(dim, perplexity, learningRate, 300, true)
+		t := tsne.NewTSNE(dim, perplexity, learningRate, 3000, true)
 		resMat := t.EmbedData(albumMx, nil)
 		d := mat.DenseCopyOf(resMat)
 
 		for i := range e.Vectors {
-			items = append(items, Item{
+			items = append(items, Vector{
 				Name:   e.Vectors[i].Name,
-				Vector: d.RawRowView(i),
+				Values: d.RawRowView(i),
 			})
 		}
 		tsnes = append(tsnes, Data{
@@ -90,11 +90,11 @@ func getPCA(embs []Data, dim int) ([]Data, error) {
 	pcas := make([]Data, 0, len(embs))
 
 	for _, e := range embs {
-		items := make([]Item, 0, len(e.Vectors))
+		items := make([]Vector, 0, len(e.Vectors))
 		// albumMx: each row is a song whose dimension is the length of its embedding
-		albumMx := mat.NewDense(len(e.Vectors), len(e.Vectors[0].Vector), nil)
+		albumMx := mat.NewDense(len(e.Vectors), len(e.Vectors[0].Values), nil)
 		for i, t := range e.Vectors {
-			albumMx.SetRow(i, t.Vector)
+			albumMx.SetRow(i, t.Values)
 		}
 		r, _ := albumMx.Dims()
 		if r == 1 {
@@ -110,12 +110,12 @@ func getPCA(embs []Data, dim int) ([]Data, error) {
 		var proj mat.Dense
 		var vec mat.Dense
 		pc.VectorsTo(&vec)
-		proj.Mul(albumMx, vec.Slice(0, len(e.Vectors[0].Vector), 0, dim))
+		proj.Mul(albumMx, vec.Slice(0, len(e.Vectors[0].Values), 0, dim))
 
 		for i := range e.Vectors {
-			items = append(items, Item{
+			items = append(items, Vector{
 				Name:   e.Vectors[i].Name,
-				Vector: proj.RawRowView(i),
+				Values: proj.RawRowView(i),
 			})
 		}
 		pcas = append(pcas, Data{

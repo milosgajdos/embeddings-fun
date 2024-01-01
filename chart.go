@@ -55,9 +55,9 @@ func add2DSeries(artist string, data []Data, chart *charts.Scatter) error {
 	var chartData []opts.ScatterData
 	for _, d := range data {
 		for _, p := range d.Vectors {
-			vals := make([]interface{}, len(p.Vector))
-			for i := range p.Vector {
-				vals[i] = p.Vector[i]
+			vals := make([]interface{}, len(p.Values))
+			for i := range p.Values {
+				vals[i] = p.Values[i]
 			}
 			chartData = append(chartData, opts.ScatterData{
 				Name:   fmt.Sprintf("%s (%s)", p.Name, d.Name),
@@ -80,9 +80,9 @@ func add3DSeries(artist string, data []Data, chart *charts.Scatter3D, grad bool)
 	var chartData []opts.Chart3DData
 	for i, d := range data {
 		for _, p := range d.Vectors {
-			vals := make([]interface{}, len(p.Vector))
-			for i := range p.Vector {
-				vals[i] = p.Vector[i]
+			vals := make([]interface{}, len(p.Values))
+			for i := range p.Values {
+				vals[i] = p.Values[i]
 			}
 			chartData = append(chartData, opts.Chart3DData{
 				Name:      fmt.Sprintf("%s (%s)", p.Name, d.Name),
