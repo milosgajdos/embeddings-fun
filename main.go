@@ -61,14 +61,14 @@ func getTSNE(embs []Data, dim int) ([]Data, error) {
 
 	for _, e := range embs {
 		items := make([]Vector, 0, len(e.Vectors))
-		// albumMx: each row is a song whose dimension is the length of its embedding
-		albumMx := mat.NewDense(len(e.Vectors), len(e.Vectors[0].Values), nil)
+		// embMx: each row is a song whose dimension is the length of its embedding
+		embMx := mat.NewDense(len(e.Vectors), len(e.Vectors[0].Values), nil)
 		for i, t := range e.Vectors {
-			albumMx.SetRow(i, t.Values)
+			embMx.SetRow(i, t.Values)
 		}
 
 		t := tsne.NewTSNE(dim, perplexity, learningRate, 3000, true)
-		resMat := t.EmbedData(albumMx, nil)
+		resMat := t.EmbedData(embMx, nil)
 		d := mat.DenseCopyOf(resMat)
 
 		for i := range e.Vectors {
@@ -91,18 +91,18 @@ func getPCA(embs []Data, dim int) ([]Data, error) {
 
 	for _, e := range embs {
 		items := make([]Vector, 0, len(e.Vectors))
-		// albumMx: each row is a song whose dimension is the length of its embedding
-		albumMx := mat.NewDense(len(e.Vectors), len(e.Vectors[0].Values), nil)
+		// embMx: each row is a song whose dimension is the length of its embedding
+		embMx := mat.NewDense(len(e.Vectors), len(e.Vectors[0].Values), nil)
 		for i, t := range e.Vectors {
-			albumMx.SetRow(i, t.Values)
+			embMx.SetRow(i, t.Values)
 		}
-		r, _ := albumMx.Dims()
+		r, _ := embMx.Dims()
 		if r == 1 {
-			log.Printf("skipping data %s due to low number of items: %d", e.Name, len(e.Vectors))
+			log.Printf("skipping %s: low number of items: %d", e.Name, len(e.Vectors))
 			continue
 		}
 		var pc stat.PC
-		ok := pc.PrincipalComponents(albumMx, nil)
+		ok := pc.PrincipalComponents(embMx, nil)
 		if !ok {
 			log.Printf("failed pca for %s", e.Name)
 			continue
@@ -110,7 +110,7 @@ func getPCA(embs []Data, dim int) ([]Data, error) {
 		var proj mat.Dense
 		var vec mat.Dense
 		pc.VectorsTo(&vec)
-		proj.Mul(albumMx, vec.Slice(0, len(e.Vectors[0].Values), 0, dim))
+		proj.Mul(embMx, vec.Slice(0, len(e.Vectors[0].Values), 0, dim))
 
 		for i := range e.Vectors {
 			items = append(items, Vector{
