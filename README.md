@@ -8,4 +8,4 @@
 
 This is a **quick and dirty `Go` hack** used to explore text embeddings generated for lyrics of the songs made by [Taylor Swift](https://en.wikipedia.org/wiki/Taylor_Swift) and [Masterplan](https://en.wikipedia.org/wiki/Masterplan_(band)).
 
-You can read more about the motivation for it and much more [here](http://localhost:1313/2024/01/07/fun-with-embeddings/).
+You can read more about the motivation for it and much more [here](https://cybernetist.com/2024/01/07/fun-with-embeddings/).
